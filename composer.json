@@ -1,0 +1,21 @@
+{
+    "name": "tcja/domdxmlparser",
+    "description": "DOMDXMLParser is a class that can handle multiple CRUD tasks with XML files using The DOMDocument class",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Trim C.",
+            "email": "cloackage@hotmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tcja\\": "src/"
+        }
+    }
+}
