@@ -71,6 +71,11 @@ or a layout with 2 levels nodes comprising each data in a single node without an
   </account>
 </accounts>
 ```
+## How to install
+
+Using composer : `composer require tcja/domdxmlparser`
+
+or just download the class itself
 
 ## Read, check and compare data methods
 
@@ -79,7 +84,7 @@ or a layout with 2 levels nodes comprising each data in a single node without an
 // Since DOMDXMLParser uses method names such as sortBy() and toArray(),
 // we use the class in its own namespace to avoid conflict with same methods
 // names within famous frameworks like laravel or symfony
-$xml = new \DOMDXMLParser\DOMDXMLParser('path/to/xml/file');
+$xml = new DOMDXMLParser('path/to/xml/file');
 $check = $xml->checkNode('email', 'second-user@mail.com');
 var_dump($check); // Output : true if email was found, false if not
 ```
