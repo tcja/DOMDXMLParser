@@ -481,6 +481,7 @@ $xml->pickNode('email', 'second-user@mail.com')->remove();
 ```
 ## Requirements
 PHP 7.1 or above
+
 PSR-4 autoload if using composer
 
 ## Dependencies
