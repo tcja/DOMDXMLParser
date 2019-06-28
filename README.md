@@ -479,8 +479,9 @@ $xml->pickNode('name', 'Third User')->setTextValue('New node value');
 ```php
 $xml->pickNode('email', 'second-user@mail.com')->remove();
 ```
-## Requirement
+## Requirements
 PHP 7.1 or above
+PSR-4 autoload if using composer
 
 ## Dependencies
 None
