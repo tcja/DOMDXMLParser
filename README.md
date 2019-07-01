@@ -419,6 +419,19 @@ $checkPassword = $xml->pickNode('email', 'second-user@mail.com')->compareTo('pas
 vard_dump($checkPassword); // Output : true
 ```
 
+**Get the highest value amongst all nodes :** suppose we want to get the user with the highest ID :
+```php
+$highest_user_id = $xml->pickNode('account')->getHighestValue('id');
+vard_dump($highest_user_id); // Output : 6
+```
+
+**Get the total amount of items from the DOM:**
+```php
+$total_items = $xml->getTotalItems();
+vard_dump($total_items); // Output : 6
+```
+
+
 ## Edit, add and remove data methods
 
 **Add a new node in the XML file :** suppose we want to add a new user, first we pass the name of the node and then we can pass an array of attributes and values :
@@ -443,6 +456,19 @@ $xml->addNode('account', [
     'description' => 'User account'
 ], true);
 ```
+If there is no data in the XML file yet and you want to add a node using the non-attribute layout style, please use the `setLayoutStyle()` method and pass `true` to its parameter before using `addNode()` method like so :
+```php
+$xml->setLayoutStyle(true);
+$xml->addNode('account', [
+    'id' => 7, 
+    'type' => 'user', 
+    'email' => 'fourth-user@mail.com', 
+    'name' => 'Fourth User', 
+    'password' => '$2y$12$WOjspiqT7ZuuMMPGCeZJjuU4hguSpEV9TQSfnjZudGgF9PYj7OAEa', 
+    'description' => 'User account'
+]);
+```
+If there is already data in the XML file, we don't need to specify the layout style as the class will guess it for us and add the data accordingly.
 
 **Change node values :** suppose we want to change some data for user with ID "3" (change its email and its user type to "user") :
 ```php
@@ -490,3 +516,15 @@ None
 ## License
 
 Released under the **MIT License**
+
+## Changelog
+
+*v1.1* :
+
+Fixed some bugs, improved some code, also added three new methods : 
+
+- `DOMDXMLParser::setLayoutStyle($style)` :  changes layout style node to single node -> value pair if set to true
+
+- `DOMDXMLParser::getHighestValue($selector)` : shows the highest value of `$selector` amongst all the nodes 
+
+- `DOMDXMLParser::getTotalItems()` : shows the total number of items in the DOM
