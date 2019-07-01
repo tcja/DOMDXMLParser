@@ -10,10 +10,15 @@ namespace Tcja\DOMDXMLParser;
  * @license MIT License
  * @author  Trim C.
  *
- * @version 1.0
+ * @version 1.1
  */
 class DOMDXMLParser
 {
+    /**
+	 *
+	 * @var bool $layoutStyle	XML style layout
+	 * */
+    protected $layoutStyle = false;
     /**
 	 *
 	 * @var string $DOMPath	XML file path
@@ -32,7 +37,7 @@ class DOMDXMLParser
 
     /**
 	 * Initialize and prepare the DOM to be handled from the XML file
-	 * 
+	 *
 	 * @param 	string			$path		The path to the XML file
 	 * @return	void
 	 **/
@@ -47,8 +52,8 @@ class DOMDXMLParser
     /**
 	 * Check a node existance based on its value or one of its attribute/value pair
 	 *
-	 * @param 	string			$node		Any node value or attribute/value pair
-	 * @return	bool						Return false if no corresponding data found, if yes return true
+	 * @param 	string			$selector		Any node value or attribute/value pair
+	 * @return	bool						    Return false if no corresponding data found, if yes return true
 	 **/
 	public function checkNode(...$selector)
 	{
@@ -64,7 +69,7 @@ class DOMDXMLParser
 	 * Select a node based on its value or one of its attribute/value pair
 	 *
 	 * @param 	mixed			$selector		Any node value or attribute/value pair
-	 * @return	object							If no corresponding data found : set "nodeData" property to false, 
+	 * @return	object							If no corresponding data found : set "nodeData" property to false,
 	 * 											if yes : set the corresponding node data to "nodeData" property, return $this in any case
 	 **/
 	public function pickNode(...$selector)
@@ -75,93 +80,91 @@ class DOMDXMLParser
 			$target = $this->XPathQuery('//*[text()="' . $selector[0] . '"]');
 			if (!$target) {
 				$target = $this->DOM->getElementsByTagName($selector[0]);
-				if ($target) {
-					$this->nodeData = $target;
-
-					return $this;
-				}
 			}
 		}
 
-		($target) ? $this->nodeData = $target : $this->nodeData = false;
-		
+		($target->length) ? $this->nodeData = $target : $this->nodeData = false;
+
 		return $this;
     }
     /**
 	 * Collect corresponding data (attributes/values and node value) from the specified node, chain with $this->pickNode('foo')->fetchData() for example
 	 *
 	 * @param 	mixed			$selector		If an attribute or tag is set, collect all the values which match only the attribute or tag
-	 * @return	mixed							Store an array of [attribute => value] in $this->nodeData property if data was found and return $this, return false if no match
+	 * @return	mixed							Store an array of [attribute => value] in $this->nodeData property if data was found and return $this, put  $this->nodeData to false if no match,
+     *                                          return $this in any case
 	 **/
 	public function fetchData($selector = null)
 	{
-		if (empty($selector)) {
-			if ($this->nodeData) {
-				foreach ($this->nodeData as $node) {
-					if ($node->childNodes->length <= 1) {
-						if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
-							foreach ($node->attributes as $value) {
-								$names[] = $value->name;
-								$values[] = $value->value;
-							}
-							$names[] = 'nodeValue';
-							$values[] = $node->nodeValue;
-						} else {
-							foreach ($node->parentNode->childNodes as $childNodes) {
-								$names[] = $childNodes->tagName;
-								$values[] = $childNodes->nodeValue;
-							}
-						}
-					} else {
-						foreach ($node->childNodes as $childNodes) {
-							$names[] = $childNodes->tagName;
-							$values[] = $childNodes->nodeValue;
-						}
-					}
-					$array[] = array_combine($names, $values);
-				}
+        if ($this->nodeData) {
+            if (empty($selector)) {
+                foreach ($this->nodeData as $node) {
+                    if ($node->childNodes->length <= 1) {
+                        if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
+                            foreach ($node->attributes as $value) {
+                                $names[] = $value->name;
+                                $values[] = $value->value;
+                            }
+                            $names[] = 'nodeValue';
+                            $values[] = $node->nodeValue;
+                        } else {
+                            foreach ($node->parentNode->childNodes as $childNodes) {
+                                $names[] = $childNodes->tagName;
+                                $values[] = $childNodes->nodeValue;
+                            }
+                        }
+                    } else {
+                        foreach ($node->childNodes as $childNodes) {
+                            $names[] = $childNodes->tagName;
+                            $values[] = $childNodes->nodeValue;
+                        }
+                    }
+                    $array[] = array_combine($names, $values);
+                }
 
-				$this->nodeData = (count($array) == 1) ? array_merge($array[0]) : $array;
+                $this->nodeData = (count($array) == 1) ? array_merge($array[0]) : $array;
 
-				return $this;
-			}
-		} else {
-			if ($this->nodeData->length > 0 && $this->nodeData->item(0)->getAttribute($selector)) {
-				foreach ($this->nodeData as $node) {
-					$names[] = $selector;
-					$values[] = $node->getAttribute($selector);
-					$array[] = array_combine($names, $values);
-				}
+                return $this;
+            } else {
+                if ($this->nodeData->length && $this->nodeData->item(0)->getAttribute($selector)) {
+                    foreach ($this->nodeData as $node) {
+                        $names[] = $selector;
+                        $values[] = $node->getAttribute($selector);
+                        $array[] = array_combine($names, $values);
+                    }
 
-				$this->nodeData = $array;
-			} else {
-				if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
-					foreach ($this->nodeData as $node) {
-						foreach ($node->childNodes as $childNodes) {
-							if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector) || $selector == 'nodeValue') {
-								$names[] = ($selector == 'nodeValue') ? 'nodeValue' : $childNodes->tagName;
-								$values[] = $childNodes->nodeValue;
-							}
-						}
-						$array[] = array_combine($names, $values);
-					}
-				} else {
-					foreach ($this->nodeData->item(0)->parentNode->childNodes as $childNodes) {
-						if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector)) {
-							$names[] = $childNodes->tagName;
-							$values[] = $childNodes->nodeValue;
-						}
-					}
-					$array[] = array_combine($names, $values);
-				}
-			}
+                    $this->nodeData = $array;
+                } else {
+                    if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
+                        foreach ($this->nodeData as $node) {
+                            foreach ($node->childNodes as $childNodes) {
+                                if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector) || $selector == 'nodeValue') {
+                                    $names[] = ($selector == 'nodeValue') ? 'nodeValue' : $childNodes->tagName;
+                                    $values[] = $childNodes->nodeValue;
+                                }
+                            }
+                            $array[] = array_combine($names, $values);
+                        }
+                    } else {
+                        foreach ($this->nodeData->item(0)->parentNode->childNodes as $childNodes) {
+                            if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector)) {
+                                $names[] = $childNodes->tagName;
+                                $values[] = $childNodes->nodeValue;
+                            }
+                        }
+                        $array[] = array_combine($names, $values);
+                    }
+                }
 
-			$this->nodeData = (count($array) == 1) ? array_merge($array[0]) : $array;
+                $this->nodeData = (count($array) == 1) ? array_merge($array[0]) : $array;
 
-			return $this;
-		}
+                return $this;
+            }
+        }
 
-        return false;
+        $this->nodeData = false;
+
+        return $this;
     }
     /**
 	 * Sort a multi-dimentional array by a node attribute, chain with $this->pickNode('foo')->sortBy('bar')->toArray() for example
@@ -181,18 +184,18 @@ class DOMDXMLParser
 				return strtolower($b[$attr]) <=> strtolower($a[$attr]);
 			});
 		}
-        
+
 		return $this;
     }
     /**
 	 * Return the array of the fetched node data, chain with $this->pickNode('foo')->toArray() for example
 	 *
-	 * @return	array						Return the array of the fetched node data
+	 * @return	mixed   Return the array of the fetched node data or false if no match
 	 **/
     public function toArray()
 	{
 		if ($this->nodeData) {
-			if (count($this->nodeData[0]) === 1) {
+			if (!empty($this->nodeData[0]) && is_array($this->nodeData[0]) && count($this->nodeData[0]) === 1) {
 				foreach ($this->nodeData as $key => $value) {
 					$array[] = $value[key($value)];
 				}
@@ -202,7 +205,7 @@ class DOMDXMLParser
 				return $this->nodeData;
 			}
 		}
-		
+
 		return false;
     }
     /**
@@ -236,7 +239,7 @@ class DOMDXMLParser
 				}
 			}
 		}
-		
+
 		return false;
     }
     /**
@@ -315,26 +318,26 @@ class DOMDXMLParser
 	 * @return	bool							Return true on change success or false if failed
 	 **/
 	public function addNode($node, $data, $CDATA = false)
-	{		
-		$newNode = $this->DOM->createElement($node);
-		if ($this->DOM->childNodes->item(0)->childNodes->item(0)->attributes->length > 0) {
-			foreach ($data as $attr => $value) {
-				if ($attr != 'CDATA' && $attr != 'textNode') {
-					$newNode->setAttribute($attr, $value);
-				}
-			}
-			if (!empty($data['CDATA'])) {
-				$newNode->appendChild($this->DOM->createCDATASection($data['CDATA']));
-			} elseif (!empty($data['textNode'])) {
-				$newNode->appendChild($this->DOM->createTextNode($data['textNode']));
-			}
-		} else {			
-			foreach ($data as $attr => $value) {
-				$innerNode = $this->DOM->createElement($attr);
-				$innerNode->appendChild(($CDATA) ? $this->DOM->createCDATASection($value) : $this->DOM->createTextNode($value));
-				$newNode->appendChild($innerNode);
-			}			
-		}
+	{
+        $newNode = $this->DOM->createElement($node);
+        if (($this->getTotalItems() && $this->DOM->childNodes->item(0)->childNodes->item(0)->attributes->length) || !$this->layoutStyle) {
+            foreach ($data as $attr => $value) {
+                if ($attr != 'CDATA' && $attr != 'textNode') {
+                    $newNode->setAttribute($attr, $value);
+                }
+            }
+            if (!empty($data['CDATA'])) {
+                $newNode->appendChild($this->DOM->createCDATASection($data['CDATA']));
+            } elseif (!empty($data['textNode'])) {
+                $newNode->appendChild($this->DOM->createTextNode($data['textNode']));
+            }
+        } else {
+            foreach ($data as $attr => $value) {
+                $innerNode = $this->DOM->createElement($attr);
+                $innerNode->appendChild(($CDATA) ? $this->DOM->createCDATASection($value) : $this->DOM->createTextNode($value));
+                $newNode->appendChild($innerNode);
+            }
+        }
 
 		$this->DOM->documentElement->appendChild($newNode);
 
@@ -352,7 +355,7 @@ class DOMDXMLParser
 		} else {
 			$this->nodeData->item(0)->parentNode->parentNode->removeChild($this->nodeData->item(0)->parentNode);
 		}
-		
+
 		return ($this->DOM->save($this->DOMPath)) ? true : false;
     }
     /**
@@ -365,11 +368,21 @@ class DOMDXMLParser
 		return $path;
     }
     /**
+	 * Set the layout style to single node -> value pair
+	 *
+     * @param 		string			$style		If set to true : set the layout style to single node -> value pair
+	 * @return	    void
+	 **/
+	public function setLayoutStyle($style)
+	{
+		$this->layoutStyle = $style;
+    }
+    /**
 	 * Initialize DOMDocument class
 	 *
 	 * @param 		string			$version		XML file version, defaults to 1.0
 	 * @param 		string			$encoding		XML file encoding, defaults to UTF-8
-	 * @return		string							Return an instance of DOMDocument class
+	 * @return		object							Return an instance of DOMDocument class
 	 **/
 	public function setDOM($version = '1.0', $encoding = 'UTF-8')
 	{
@@ -436,7 +449,26 @@ class DOMDXMLParser
 		}
 
 		return false;
-	}	
+	}
+	/**
+	 * Get the highest value of a node name or attribute value from all nodes, chain with $this->pickNode('foo')->getHighestValue('bar') for example
+	 *
+	 * @param 	string			$selector		Any node name or attribute/value pair
+	 * @return	mixed						    Return the highest value or return false if no match
+	 **/
+	public function getHighestValue($selector)
+	{
+        return ($this->nodeData && !empty($selector)) ? max($this->fetchData($selector)->toArray()) : false;
+	}
+	/**
+	 * Get total number of items in the current DOM
+	 *
+	 * @return	mixed   Return the total number or return false if no match
+	 **/
+	public function getTotalItems()
+	{
+        return ($this->DOM) ? $this->DOM->childNodes->item(0)->childNodes->length : false;
+	}
     /**
 	 *
 	 * @return	string
@@ -452,5 +484,5 @@ class DOMDXMLParser
 	public function getDOM()
 	{
 		return $this->DOM;
-    }    
+    }
 }
