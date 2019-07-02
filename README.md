@@ -518,6 +518,11 @@ None
 Released under the **MIT License**
 
 ## Changelog
+*v1.1* :
+
+Fixed minor bugs (`DOMDXMLParser::getTotalItems()` method wasn't calculating items correctly), improved code, added a new method : 
+
+- `DOMDXMLParser::checkLayoutStyle()` :  Checks the current DOM layout style
 
 *v1.1* :
 
