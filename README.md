@@ -518,7 +518,7 @@ None
 Released under the **MIT License**
 
 ## Changelog
-*v1.1* :
+*v1.1.1* :
 
 Fixed minor bugs (`DOMDXMLParser::getTotalItems()` method wasn't calculating items correctly), improved code, added a new method : 
 
