@@ -10,7 +10,7 @@ namespace Tcja\DOMDXMLParser;
  * @license MIT License
  * @author  Trim C.
  *
- * @version 1.1
+ * @version 1.1.1
  */
 class DOMDXMLParser
 {
@@ -47,7 +47,7 @@ class DOMDXMLParser
 		$this->DOM = $this->setDOM();
 		$this->DOM->preserveWhiteSpace = false;
 		$this->DOM->formatOutput = true;
-		$this->DOM->load($this->DOMPath);
+        $this->DOM->load($this->DOMPath);
     }
     /**
 	 * Check a node existance based on its value or one of its attribute/value pair
@@ -100,7 +100,7 @@ class DOMDXMLParser
             if (empty($selector)) {
                 foreach ($this->nodeData as $node) {
                     if ($node->childNodes->length <= 1) {
-                        if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
+                        if ($this->checkLayoutStyle()) {
                             foreach ($node->attributes as $value) {
                                 $names[] = $value->name;
                                 $values[] = $value->value;
@@ -135,7 +135,7 @@ class DOMDXMLParser
 
                     $this->nodeData = $array;
                 } else {
-                    if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
+                    if ($this->checkLayoutStyle()) {
                         foreach ($this->nodeData as $node) {
                             foreach ($node->childNodes as $childNodes) {
                                 if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector) || $selector == 'nodeValue') {
@@ -250,7 +250,7 @@ class DOMDXMLParser
 	 **/
 	public function changeData(...$data)
 	{
-		if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
+		if ($this->checkLayoutStyle()) {
 			if (is_array($data[0])) {
 				if (!empty($this->nodeData->item(0)->attributes->item(0))) {
 					foreach ($this->nodeData as $node) {
@@ -319,27 +319,49 @@ class DOMDXMLParser
 	 **/
 	public function addNode($node, $data, $CDATA = false)
 	{
-        $newNode = $this->DOM->createElement($node);
-        if (($this->getTotalItems() && $this->DOM->childNodes->item(0)->childNodes->item(0)->attributes->length) || !$this->layoutStyle) {
-            foreach ($data as $attr => $value) {
-                if ($attr != 'CDATA' && $attr != 'textNode') {
-                    $newNode->setAttribute($attr, $value);
+        if (!$this->getTotalItems()) {
+            $newNode = $this->DOM->createElement($node);
+            if (!$this->layoutStyle) {
+                foreach ($data as $attr => $value) {
+                    if ($attr != 'CDATA' && $attr != 'textNode') {
+                        $newNode->setAttribute($attr, $value);
+                    }
+                }
+                if (!empty($data['CDATA'])) {
+                    $newNode->appendChild($this->DOM->createCDATASection($data['CDATA']));
+                } elseif (!empty($data['textNode'])) {
+                    $newNode->appendChild($this->DOM->createTextNode($data['textNode']));
+                }
+            } else {
+                foreach ($data as $attr => $value) {
+                    $innerNode = $this->DOM->createElement($attr);
+                    $innerNode->appendChild(($CDATA) ? $this->DOM->createCDATASection($value) : $this->DOM->createTextNode($value));
+                    $newNode->appendChild($innerNode);
                 }
             }
-            if (!empty($data['CDATA'])) {
-                $newNode->appendChild($this->DOM->createCDATASection($data['CDATA']));
-            } elseif (!empty($data['textNode'])) {
-                $newNode->appendChild($this->DOM->createTextNode($data['textNode']));
+            $this->DOM->documentElement->appendChild($newNode);
+        } elseif ($this->getTotalItems()) {
+            $newNode = $this->DOM->createElement($node);
+            if ($this->checkLayoutStyle()) {
+                foreach ($data as $attr => $value) {
+                    if ($attr != 'CDATA' && $attr != 'textNode') {
+                        $newNode->setAttribute($attr, $value);
+                    }
+                }
+                if (!empty($data['CDATA'])) {
+                    $newNode->appendChild($this->DOM->createCDATASection($data['CDATA']));
+                } elseif (!empty($data['textNode'])) {
+                    $newNode->appendChild($this->DOM->createTextNode($data['textNode']));
+                }
+            } else {
+                foreach ($data as $attr => $value) {
+                    $innerNode = $this->DOM->createElement($attr);
+                    $innerNode->appendChild(($CDATA) ? $this->DOM->createCDATASection($value) : $this->DOM->createTextNode($value));
+                    $newNode->appendChild($innerNode);
+                }
             }
-        } else {
-            foreach ($data as $attr => $value) {
-                $innerNode = $this->DOM->createElement($attr);
-                $innerNode->appendChild(($CDATA) ? $this->DOM->createCDATASection($value) : $this->DOM->createTextNode($value));
-                $newNode->appendChild($innerNode);
-            }
+            $this->DOM->documentElement->appendChild($newNode);
         }
-
-		$this->DOM->documentElement->appendChild($newNode);
 
 		return ($this->DOM->save($this->DOMPath)) ? true : false;
     }
@@ -350,13 +372,22 @@ class DOMDXMLParser
 	 **/
 	public function remove()
 	{
-		if (!$this->nodeData->item(0)->parentNode->parentNode->parentNode instanceof \DOMDocument) {
+		if ($this->checkLayoutStyle()) {
 			$this->nodeData->item(0)->parentNode->removeChild($this->nodeData->item(0));
 		} else {
 			$this->nodeData->item(0)->parentNode->parentNode->removeChild($this->nodeData->item(0)->parentNode);
 		}
 
 		return ($this->DOM->save($this->DOMPath)) ? true : false;
+    }
+    /**
+	 * Check the current DOM layout style
+	 *
+	 * @return	bool	Return true if layout style is the default one (attribute/value pair) or false if it is the node -> value pair
+	 **/
+	protected function checkLayoutStyle()
+	{
+        return ($this->DOM->childNodes->item(0)->childNodes->item(0)->attributes->length) ? true : false;
     }
     /**
 	 * Set the DOM XML file path
@@ -463,11 +494,11 @@ class DOMDXMLParser
 	/**
 	 * Get total number of items in the current DOM
 	 *
-	 * @return	mixed   Return the total number or return false if no match
+	 * @return	mixed   Return the total number or return 0 if no item found
 	 **/
 	public function getTotalItems()
 	{
-        return ($this->DOM) ? $this->DOM->childNodes->item(0)->childNodes->length : false;
+        return ($this->DOM && !empty($this->DOM->childNodes->item(0)->childNodes->item(0)->childNodes)) ? $this->DOM->childNodes->item(0)->childNodes->item(0)->childNodes->length : 0;
 	}
     /**
 	 *
