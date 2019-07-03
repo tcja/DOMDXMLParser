@@ -10,7 +10,7 @@ namespace Tcja\DOMDXMLParser;
  * @license MIT License
  * @author  Trim C.
  *
- * @version 1.1.1
+ * @version 1.1.15
  */
 class DOMDXMLParser
 {
@@ -135,20 +135,10 @@ class DOMDXMLParser
 
                     $this->nodeData = $array;
                 } else {
-                    if ($this->checkLayoutStyle()) {
-                        foreach ($this->nodeData as $node) {
-                            foreach ($node->childNodes as $childNodes) {
-                                if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector) || $selector == 'nodeValue') {
-                                    $names[] = ($selector == 'nodeValue') ? 'nodeValue' : $childNodes->tagName;
-                                    $values[] = $childNodes->nodeValue;
-                                }
-                            }
-                            $array[] = array_combine($names, $values);
-                        }
-                    } else {
-                        foreach ($this->nodeData->item(0)->parentNode->childNodes as $childNodes) {
-                            if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector)) {
-                                $names[] = $childNodes->tagName;
+                    foreach ($this->nodeData as $node) {
+                        foreach ($node->childNodes as $childNodes) {
+                            if ((!empty($childNodes->tagName) && $childNodes->tagName == $selector) || $selector == 'nodeValue') {
+                                $names[] = ($selector == 'nodeValue') ? 'nodeValue' : $childNodes->tagName;
                                 $values[] = $childNodes->nodeValue;
                             }
                         }
@@ -289,6 +279,11 @@ class DOMDXMLParser
 			if (is_array($data[0])) {
 				foreach ($this->nodeData->item(0)->parentNode->childNodes as $node) {
 					foreach ($data[0] as $attr => $value) {
+                        if (!$this->XPathQuery('//' . $attr)) {
+                            $newNode = $this->DOM->createElement($attr, $value);
+                            $node->parentNode->appendChild($newNode);
+                            continue;
+                        }
 						if ($node->tagName == $attr && $node->firstChild->nodeName == '#cdata-section') {
 							(!empty($node->firstChild)) ? $node->replaceChild($this->DOM->createCDATASection($value), $node->firstChild) : $node->appendChild($this->DOM->createCDATASection($value));
 						} elseif ($node->tagName == $attr && $node->firstChild->nodeName == '#text') {
@@ -385,7 +380,7 @@ class DOMDXMLParser
 	 *
 	 * @return	bool	Return true if layout style is the default one (attribute/value pair) or false if it is the node -> value pair
 	 **/
-	protected function checkLayoutStyle()
+	public function checkLayoutStyle()
 	{
         return ($this->DOM->childNodes->item(0)->childNodes->item(0)->attributes->length) ? true : false;
     }
@@ -498,7 +493,7 @@ class DOMDXMLParser
 	 **/
 	public function getTotalItems()
 	{
-        return ($this->DOM && !empty($this->DOM->childNodes->item(0)->childNodes->item(0)->childNodes)) ? $this->DOM->childNodes->item(0)->childNodes->item(0)->childNodes->length : 0;
+        return ($this->DOM && !empty($this->DOM->childNodes->item(0)->childNodes->item(0)->childNodes)) ? $this->DOM->childNodes->item(0)->childNodes->length : 0;
 	}
     /**
 	 *
