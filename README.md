@@ -477,7 +477,7 @@ $xml->pickNode('id', 3)->changeData([
     'email' => 'foo-bar@mail.com'
 ]);
 ```
-To change only one attribute value, we can just pass the attribute as a the first parameter and its value to the second one :
+To change only one attribute value, we can just pass the attribute as a the first argument and its value to the second one :
 ```php
 $xml->pickNode('id', 3)->changeData('email', 'foo-bar@mail.com');
 ```
