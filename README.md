@@ -84,6 +84,8 @@ or just download the class itself and install it manually
 // Since DOMDXMLParser uses method names such as sortBy() and toArray(),
 // we use the class in its own namespace to avoid conflict with same methods
 // names within famous frameworks like laravel or symfony
+use Tcja\DOMDXMLParser;
+
 $xml = new DOMDXMLParser('path/to/xml/file');
 $check = $xml->checkNode('email', 'second-user@mail.com');
 var_dump($check); // Output : true if email was found, false if not
