@@ -1,6 +1,6 @@
 <?php
 
-namespace Tcja\DOMDXMLParser;
+namespace Tcja;
 
 /**
  * DOMDXMLParser
