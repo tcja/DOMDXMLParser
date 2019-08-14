@@ -73,9 +73,9 @@ or a layout with 2 levels nodes comprising each data in a single node without an
 ```
 ## How to install
 
-Using composer : `composer require tcja/domdxmlparser`
+Using composer : `composer require tcja/domdxmlparser:dev-master`
 
-or just download the class itself
+or just download the class itself and install it manually
 
 ## Read, check and compare data methods
 
