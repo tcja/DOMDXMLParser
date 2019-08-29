@@ -345,9 +345,9 @@ array(6) {
   }
 }
 ```
-To sort in descending order, pass `true` value to `sortBy()` second attribute like so :
+To sort in descending order, pass `DESC` value to `sortBy()` second attribute like so :
 ```php
-$data = $xml->pickNode('account')->fetchData()->sortBy('email', true)->toArray();
+$data = $xml->pickNode('account')->fetchData()->sortBy('email', 'DESC')->toArray();
 ```
 ***Please note that `sortBy()` method also sorts numerical values.***
 
