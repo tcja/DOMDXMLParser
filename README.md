@@ -1,10 +1,20 @@
+# Menu
+
+* [How to install](https://github.com/tcja/DOMDXMLParser#user-content-how-to-install)
+* [Read, check and compare data methods](https://github.com/tcja/DOMDXMLParser#user-content-read-check-and-compare-data-methods)
+* [Edit, add and remove data methods](https://github.com/tcja/DOMDXMLParser#user-content-edit-add-and-remove-data-methods)
+* [Requirements](https://github.com/tcja/DOMDXMLParser#user-content-requirements)
+* [Dependencies](https://github.com/tcja/DOMDXMLParser#user-content-dependencies)
+* [License](https://github.com/tcja/DOMDXMLParser#user-content-license)
+* [Changelog](https://github.com/tcja/DOMDXMLParser#user-content-changelog)
+
 # DOMDXMLParser
 
 DOMDXMLParser is a class that can handle multiple CRUD tasks with XML files
 
 ## This class currently only supports the following XML layout examples
 
-Simple layout with one level node along with attributes :
+Simple layout with one level node along with attributes (default layout) :
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <accounts>
@@ -458,9 +468,9 @@ $xml->addNode('account', [
     'description' => 'User account'
 ], true);
 ```
-If there is no data in the XML file yet and you want to add a node using the non-attribute layout style, please use the `setLayoutStyle()` method and pass `true` to its parameter before using `addNode()` method like so :
+If there is no data in the XML file yet and you want to add a node using the non-attribute layout style, please use the `setLayoutStyleNoAttributes()` method and pass `true` to its attribute before using `addNode()` method like so :
 ```php
-$xml->setLayoutStyle(true);
+$xml->setLayoutStyleNoAttributes(true);
 $xml->addNode('account', [
     'id' => 7, 
     'type' => 'user', 
@@ -489,6 +499,11 @@ $xml->pickNode('id', 3)->changeData('email', 'foo-bar@mail.com');
 $xml->pickNode('id', 3)->changeData('newAttribute', 'New value');
 ```
 
+**Remove an attribute:** suppose we want to remove the newly created attribute above, we would just pass `false` as the second argument to `changeData()` method from the targeted attribute like so : 
+```php
+$xml->pickNode('id', 3)->changeData('newAttribute', false);
+```
+
 **Change specific attributes to all nodes :** suppose we want to reset all users name to "NAME RESET", we pick `account` node and then pass an array with the new value to `changeData()` method : 
 ```php
 $xml->pickNode('account')->changeData(['name' => 'NAME RESET']);
@@ -508,18 +523,29 @@ $xml->pickNode('name', 'Third User')->setTextValue('New node value');
 $xml->pickNode('email', 'second-user@mail.com')->remove();
 ```
 ## Requirements
+
 PHP 7.1 or above
 
 PSR-4 autoload if using composer
 
 ## Dependencies
-None
+
+[PHP-Unit](https://phpunit.de/) for unit testing
 
 ## License
 
 Released under the **MIT License**
 
 ## Changelog
+
+*v1.2* :
+
+Added a new way to remove an attribute, renamed a method and added unit testing :
+
+ - Renamed `DOMDXMLParser::setLayoutStyle($style)` to `DOMDXMLParser::setLayoutStyleNoAttributes($style)` for better readability
+ - Remove an attribute by passing `false` to the second argument of `DOMDXMLParser::changData()` method like so : `$xml->pickNode('id', 3)->changeData('newAttribute', false);`
+ - Added unit testing **for the default layout style**, requires PHP Unit to perform them
+
 *v1.1.1* :
 
 Fixed minor bugs (`DOMDXMLParser::getTotalItems()` method wasn't calculating items correctly), improved code, added a new method : 
