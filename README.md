@@ -437,7 +437,7 @@ $highest_user_id = $xml->pickNode('account')->getHighestValue('id');
 vard_dump($highest_user_id); // Output : 6
 ```
 
-**Get the total amount of items from the DOM:**
+**Get the total amount of items from the DOM :**
 ```php
 $total_items = $xml->getTotalItems();
 vard_dump($total_items); // Output : 6
@@ -499,7 +499,7 @@ $xml->pickNode('id', 3)->changeData('email', 'foo-bar@mail.com');
 $xml->pickNode('id', 3)->changeData('newAttribute', 'New value');
 ```
 
-**Remove an attribute:** suppose we want to remove the newly created attribute above, we would just pass `false` as the second argument to `changeData()` method from the targeted attribute like so : 
+**Remove an attribute :** suppose we want to remove the newly created attribute above, we would just pass `false` as the second argument to `changeData()` method from the targeted attribute like so : 
 ```php
 $xml->pickNode('id', 3)->changeData('newAttribute', false);
 ```
