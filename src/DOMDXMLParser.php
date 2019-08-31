@@ -10,15 +10,15 @@ namespace Tcja;
  * @license MIT License
  * @author  Trim C.
  *
- * @version 1.1.15
+ * @version 1.2
  */
 class DOMDXMLParser
 {
     /**
 	 *
-	 * @var bool $layoutStyle	XML style layout
+	 * @var bool $layoutStyleNoAttributes	XML style layout
 	 * */
-    protected $layoutStyle = false;
+    protected $layoutStyleNoAttributes = false;
     /**
 	 *
 	 * @var string $DOMPath	XML file path
@@ -249,6 +249,8 @@ class DOMDXMLParser
 								(!empty($node->firstChild)) ? $node->replaceChild($this->DOM->createCDATASection($value), $node->firstChild) : $node->appendChild($this->DOM->createCDATASection($value));
 							} elseif ($attr == 'textNode') {
 								(!empty($node->firstChild)) ? $node->replaceChild($this->DOM->createTextNode($value), $node->firstChild) : $node->appendChild($this->DOM->createTextNode($value));
+							} elseif ($value === false) {
+								$node->removeAttribute($attr);
 							} else {
 								$node->setAttribute($attr, $value);
 							}
@@ -271,6 +273,8 @@ class DOMDXMLParser
 					$this->setValue($data[1]);
 				} elseif ($data[0] == 'textNode') {
 					$this->setTextValue($data[1]);
+				} elseif ($data[1] === false) {
+					$this->nodeData->item(0)->removeAttribute($data[0]);
 				} else {
 					$this->nodeData->item(0)->setAttribute($data[0], $data[1]);
 				}
@@ -316,7 +320,7 @@ class DOMDXMLParser
 	{
         if (!$this->getTotalItems()) {
             $newNode = $this->DOM->createElement($node);
-            if (!$this->layoutStyle) {
+            if (!$this->layoutStyleNoAttributes) {
                 foreach ($data as $attr => $value) {
                     if ($attr != 'CDATA' && $attr != 'textNode') {
                         $newNode->setAttribute($attr, $value);
@@ -399,9 +403,9 @@ class DOMDXMLParser
      * @param 		string			$style		If set to true : set the layout style to single node -> value pair
 	 * @return	    void
 	 **/
-	public function setLayoutStyle($style)
+	public function setLayoutStyleNoAttributes($style)
 	{
-		$this->layoutStyle = $style;
+		$this->layoutStyleNoAttributes = $style;
     }
     /**
 	 * Initialize DOMDocument class
