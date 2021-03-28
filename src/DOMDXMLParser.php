@@ -10,7 +10,7 @@ namespace Tcja;
  * @license MIT License
  * @author  Trim C.
  *
- * @version 1.2
+ * @version 1.2.1
  */
 class DOMDXMLParser
 {
